@@ -1,6 +1,6 @@
 #include "pda.h"
 
-#include <libbase58.h>
+#include "../thirdparty/libbase58.h"
 #include <stdio.h>
 
 int main(void) {
