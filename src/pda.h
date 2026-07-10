@@ -16,5 +16,7 @@ typedef struct {
 int pda_is_on_curve(const uint8_t point[32]);
 int sha256_seeds(const SignerSeeds *seeds, const uint8_t program_id[32],
                  uint8_t out[32]);
+int create_program_address(const SignerSeeds *seeds,
+                           const uint8_t program_id[32], uint8_t out[32]);
 
 #endif

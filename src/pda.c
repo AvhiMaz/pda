@@ -22,6 +22,7 @@ static const char ED25519_D_HEX[] =
     "52036CEE2B6FFE738CC740797779E89800700A4D4141D8AB75EB4DCA135978A3";
 
 int pda_is_on_curve(const uint8_t point[32]) {
+
     if (!point) {
         return -1;
     }
@@ -107,4 +108,18 @@ int sha256_seeds(const SignerSeeds *seeds, const uint8_t program_id[32],
     EVP_MD_CTX_free(ctx);
 
     return 0;
+}
+
+int create_program_address(const SignerSeeds *seeds,
+                           const uint8_t program_id[32], uint8_t out[32]) {
+
+    sha256_seeds(seeds, program_id, out);
+
+    int on_curve = pda_is_on_curve(out);
+
+    if (on_curve == 1) {
+        return -1;
+    }
+
+    return on_curve;
 }
