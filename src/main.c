@@ -1,13 +1,29 @@
 #include "pda.h"
 
+#include <libbase58.h>
 #include <stdio.h>
 
 int main(void) {
-    const uint8_t point[32] = {82,  173, 156, 51,  5,   84,  128, 195,
-                               130, 24,  133, 179, 79,  137, 107, 102,
-                               53,  209, 163, 160, 215, 225, 34,  59,
-                               160, 52,  246, 139, 184, 235, 130, 212};
+    const uint8_t system_program[32] = {0};
+    uint8_t       vault[] = "vault";
 
-    printf("on_curve = %d\n", pda_is_on_curve(point));
+    SignerSeed    seed[1] = {{.addr = vault, .len = 5}};
+    SignerSeeds   seeds = {.seeds = seed, .len = 1};
+
+    uint8_t       address[32], bump;
+    int r = find_program_address(&seeds, system_program, address, &bump);
+
+    if (r != 0) {
+        printf("find_program_address failed: %d\n", r);
+        return 1;
+    }
+
+    char   b58[50];
+    size_t b58_len = sizeof(b58);
+    b58enc(b58, &b58_len, address, 32);
+
+    printf("bump = %d\n", bump);
+    printf("address = %s\n", b58);
+
     return 0;
 }

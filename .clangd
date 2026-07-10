@@ -1,2 +1,2 @@
 CompileFlags:
-  Add: [-I/opt/homebrew/opt/openssl@3/include]
+  Add: [-I/opt/homebrew/opt/openssl@3/include, -I/Users/avhidotsol/Dev/pda/thirdparty/libbase58]
