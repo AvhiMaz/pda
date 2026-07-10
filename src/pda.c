@@ -117,9 +117,5 @@ int create_program_address(const SignerSeeds *seeds,
 
     int on_curve = pda_is_on_curve(out);
 
-    if (on_curve == 1) {
-        return -1;
-    }
-
     return on_curve;
 }
