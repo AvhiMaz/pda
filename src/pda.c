@@ -31,7 +31,6 @@ int pda_is_on_curve(const uint8_t point[32]) {
     for (int i = 0; i < 32; i++) {
         be[i] = point[31 - i];
     }
-    int sign = be[0] >> 7;
     be[0] &= 0x7F;
 
     int     res = -1;
@@ -54,7 +53,7 @@ int pda_is_on_curve(const uint8_t point[32]) {
     BN_mod_sub(num, y2, BN_value_one(), p, ctx);
 
     if (BN_is_zero(num)) {
-        res = sign ? 0 : 1;
+        res = 1;
     } else {
         BN_mod_mul(den, d, y2, p, ctx);
         BN_mod_add(den, den, BN_value_one(), p, ctx);
