@@ -1,7 +1,7 @@
 .PHONY: build run format all clean
 
 build:
-	clang -Wall -Wpedantic src/main.c -o main
+	clang -Wall -Wpedantic -I/opt/homebrew/opt/openssl@3/include -L/opt/homebrew/opt/openssl@3/lib src/main.c -o main -lcrypto
 
 run:
 	./main
