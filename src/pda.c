@@ -119,3 +119,34 @@ int create_program_address(const SignerSeeds *seeds,
 
     return on_curve;
 }
+
+int find_program_address(const SignerSeeds *seeds, const uint8_t program_id[32],
+                         uint8_t out[32], uint8_t *out_bump) {
+
+    SignerSeed extended[seeds->len + 1];
+
+    for (int i = 0; i < seeds->len; i++) {
+        extended[i] = seeds->seeds[i];
+    }
+
+    uint8_t bump;
+
+    extended[seeds->len].addr = &bump;
+    extended[seeds->len].len = 1;
+
+    SignerSeeds extended_seeds = {.seeds = extended, .len = seeds->len + 1};
+
+    for (int b = 255; b >= 1; b--) {
+        bump = (uint8_t)b;
+        int r = create_program_address(&extended_seeds, program_id, out);
+
+        if (r == 0) {
+            *out_bump = bump;
+            return 0;
+        } else {
+            return r;
+        }
+    }
+
+    return -1;
+}

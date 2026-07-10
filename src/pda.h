@@ -18,5 +18,7 @@ int sha256_seeds(const SignerSeeds *seeds, const uint8_t program_id[32],
                  uint8_t out[32]);
 int create_program_address(const SignerSeeds *seeds,
                            const uint8_t program_id[32], uint8_t out[32]);
+int find_program_address(const SignerSeeds *seeds, const uint8_t program_id[32],
+                         uint8_t out[32], uint8_t *out_bump);
 
 #endif
