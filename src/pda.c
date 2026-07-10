@@ -143,7 +143,7 @@ int find_program_address(const SignerSeeds *seeds, const uint8_t program_id[32],
         if (r == 0) {
             *out_bump = bump;
             return 0;
-        } else {
+        } else if (r != 1) {
             return r;
         }
     }
