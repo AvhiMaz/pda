@@ -7,6 +7,8 @@
 #include <openssl/bn.h>
 #include <openssl/evp.h>
 
+static const char marker[] = "ProgramDerivedAddress";
+
 /*
  * p = 2^255 - 19, converted to hex
  */
@@ -81,4 +83,28 @@ int pda_is_on_curve(const uint8_t point[32]) {
     BN_CTX_free(ctx);
 
     return res;
+}
+
+int sha256_seeds(const SignerSeeds *seeds, const uint8_t program_id[32],
+                 uint8_t out[32]) {
+
+    EVP_MD_CTX *ctx = EVP_MD_CTX_new();
+
+    if (!ctx) {
+        return -1;
+    }
+
+    unsigned int out_len = 32;
+
+    EVP_DigestInit_ex(ctx, EVP_sha256(), NULL);
+
+    for (int i = 0; i < seeds->len; i++) {
+        EVP_DigestUpdate(ctx, seeds->seeds[i].addr, seeds->seeds[i].len);
+    }
+    EVP_DigestUpdate(ctx, program_id, 32);
+    EVP_DigestUpdate(ctx, marker, 21);
+    EVP_DigestFinal_ex(ctx, out, &out_len);
+    EVP_MD_CTX_free(ctx);
+
+    return 0;
 }
