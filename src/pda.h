@@ -5,6 +5,10 @@
 
 #define PDA_MAX_SEED_LEN 32
 #define PDA_MAX_SEEDS    16
+#define PDA_PUBKEY_LEN   32
+#define PDA_MAX_BUMP     255
+#define PDA_MIN_BUMP     1
+#define PDA_SIGN_MASK    0x7F
 
 typedef struct {
     const uint8_t *addr;
@@ -16,12 +20,15 @@ typedef struct {
     uint64_t          len;
 } SignerSeeds;
 
-int pda_is_on_curve(const uint8_t point[32]);
-int sha256_seeds(const SignerSeeds *seeds, const uint8_t program_id[32],
-                 uint8_t out[32]);
+int pda_is_on_curve(const uint8_t point[PDA_PUBKEY_LEN]);
+int sha256_seeds(const SignerSeeds *seeds,
+                 const uint8_t      program_id[PDA_PUBKEY_LEN],
+                 uint8_t            out[PDA_PUBKEY_LEN]);
 int create_program_address(const SignerSeeds *seeds,
-                           const uint8_t program_id[32], uint8_t out[32]);
-int find_program_address(const SignerSeeds *seeds, const uint8_t program_id[32],
-                         uint8_t out[32], uint8_t *out_bump);
+                           const uint8_t      program_id[PDA_PUBKEY_LEN],
+                           uint8_t            out[PDA_PUBKEY_LEN]);
+int find_program_address(const SignerSeeds *seeds,
+                         const uint8_t      program_id[PDA_PUBKEY_LEN],
+                         uint8_t out[PDA_PUBKEY_LEN], uint8_t *out_bump);
 
 #endif

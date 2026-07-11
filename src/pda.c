@@ -21,17 +21,17 @@ static const char ED25519_P_HEX[] =
 static const char ED25519_D_HEX[] =
     "52036CEE2B6FFE738CC740797779E89800700A4D4141D8AB75EB4DCA135978A3";
 
-int pda_is_on_curve(const uint8_t point[32]) {
+int pda_is_on_curve(const uint8_t point[PDA_PUBKEY_LEN]) {
 
     if (!point) {
         return -1;
     }
 
-    uint8_t be[32];
-    for (int i = 0; i < 32; i++) {
-        be[i] = point[31 - i];
+    uint8_t be[PDA_PUBKEY_LEN];
+    for (int i = 0; i < PDA_PUBKEY_LEN; i++) {
+        be[i] = point[PDA_PUBKEY_LEN - 1 - i];
     }
-    be[0] &= 0x7F;
+    be[0] &= PDA_SIGN_MASK;
 
     int     res = -1;
 
@@ -43,7 +43,7 @@ int pda_is_on_curve(const uint8_t point[32]) {
 
     BN_hex2bn(&p, ED25519_P_HEX);
     BN_hex2bn(&d, ED25519_D_HEX);
-    y = BN_bin2bn(be, 32, NULL);
+    y = BN_bin2bn(be, PDA_PUBKEY_LEN, NULL);
 
     if (!ctx || !p || !d || !x2 || !y2 || !num || !den || !den_inv || !exp ||
         !leg || !y) {
@@ -91,8 +91,9 @@ out:
     return res;
 }
 
-int sha256_seeds(const SignerSeeds *seeds, const uint8_t program_id[32],
-                 uint8_t out[32]) {
+int sha256_seeds(const SignerSeeds *seeds,
+                 const uint8_t      program_id[PDA_PUBKEY_LEN],
+                 uint8_t            out[PDA_PUBKEY_LEN]) {
 
     EVP_MD_CTX *ctx = EVP_MD_CTX_new();
 
@@ -100,15 +101,15 @@ int sha256_seeds(const SignerSeeds *seeds, const uint8_t program_id[32],
         return -1;
     }
 
-    unsigned int out_len = 32;
+    unsigned int out_len = PDA_PUBKEY_LEN;
 
     EVP_DigestInit_ex(ctx, EVP_sha256(), NULL);
 
     for (uint64_t i = 0; i < seeds->len; i++) {
         EVP_DigestUpdate(ctx, seeds->seeds[i].addr, seeds->seeds[i].len);
     }
-    EVP_DigestUpdate(ctx, program_id, 32);
-    EVP_DigestUpdate(ctx, marker, 21);
+    EVP_DigestUpdate(ctx, program_id, PDA_PUBKEY_LEN);
+    EVP_DigestUpdate(ctx, marker, sizeof(marker) - 1);
     EVP_DigestFinal_ex(ctx, out, &out_len);
     EVP_MD_CTX_free(ctx);
 
@@ -116,7 +117,8 @@ int sha256_seeds(const SignerSeeds *seeds, const uint8_t program_id[32],
 }
 
 int create_program_address(const SignerSeeds *seeds,
-                           const uint8_t program_id[32], uint8_t out[32]) {
+                           const uint8_t      program_id[PDA_PUBKEY_LEN],
+                           uint8_t            out[PDA_PUBKEY_LEN]) {
 
     for (uint64_t i = 0; i < seeds->len; i++) {
         if (seeds->seeds[i].len > PDA_MAX_SEED_LEN) {
@@ -137,8 +139,9 @@ int create_program_address(const SignerSeeds *seeds,
     return on_curve;
 }
 
-int find_program_address(const SignerSeeds *seeds, const uint8_t program_id[32],
-                         uint8_t out[32], uint8_t *out_bump) {
+int find_program_address(const SignerSeeds *seeds,
+                         const uint8_t      program_id[PDA_PUBKEY_LEN],
+                         uint8_t out[PDA_PUBKEY_LEN], uint8_t *out_bump) {
 
     SignerSeed extended[seeds->len + 1];
 
@@ -153,7 +156,7 @@ int find_program_address(const SignerSeeds *seeds, const uint8_t program_id[32],
 
     SignerSeeds extended_seeds = {.seeds = extended, .len = seeds->len + 1};
 
-    for (int b = 255; b >= 1; b--) {
+    for (int b = PDA_MAX_BUMP; b >= PDA_MIN_BUMP; b--) {
         bump = (uint8_t)b;
         int r = create_program_address(&extended_seeds, program_id, out);
 
