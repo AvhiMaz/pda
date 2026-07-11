@@ -30,5 +30,15 @@ int create_program_address(const SignerSeeds *seeds,
 int find_program_address(const SignerSeeds *seeds,
                          const uint8_t      program_id[PDA_PUBKEY_LEN],
                          uint8_t out[PDA_PUBKEY_LEN], uint8_t *out_bump);
+typedef enum {
+    PDA_OK = 0,
+    PDA_ON_CURVE = 1,
+    PDA_ERR_NULL = -1,
+    PDA_ERR_SEED_TOO_LONG = -2,
+    PDA_ERR_MAX_SEEDS = -3,
+    PDA_ERR_HASH = -4,
+    PDA_ERR_CRYPTO = -5,
+    PDA_ERR_NO_BUMP = -6,
+} pda_status;
 
 #endif
