@@ -37,14 +37,19 @@ int pda_is_on_curve(const uint8_t point[32]) {
 
     BN_CTX *ctx = BN_CTX_new();
 
-    BIGNUM *p = NULL, *d = NULL, *x2 = BN_new(), *y2 = BN_new(),
+    BIGNUM *p = NULL, *d = NULL, *y = NULL, *x2 = BN_new(), *y2 = BN_new(),
            *num = BN_new(), *den = BN_new(), *den_inv = BN_new(),
            *exp = BN_new(), *leg = BN_new();
 
     BN_hex2bn(&p, ED25519_P_HEX);
     BN_hex2bn(&d, ED25519_D_HEX);
+    y = BN_bin2bn(be, 32, NULL);
 
-    BIGNUM *y = BN_bin2bn(be, 32, NULL);
+    if (!ctx || !p || !d || !x2 || !y2 || !num || !den || !den_inv || !exp ||
+        !leg || !y) {
+        res = -1;
+        goto out;
+    }
 
     /*
      * x^2 = (y^2 - 1) / (d * y^2 + 1)
@@ -70,6 +75,7 @@ int pda_is_on_curve(const uint8_t point[32]) {
         res = BN_is_one(leg) ? 1 : 0;
     }
 
+out:
     BN_free(y);
     BN_free(p);
     BN_free(d);
