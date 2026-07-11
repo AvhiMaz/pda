@@ -1,16 +1,32 @@
-.PHONY: build run format all clean
+CC       = clang
+CFLAGS   = -Wall -Wextra -Wpedantic
+CPPFLAGS = -I/opt/homebrew/opt/openssl@3/include
+LDFLAGS  = -L/opt/homebrew/opt/openssl@3/lib
+LDLIBS   = -lcrypto
 
-build:
-	clang -Wall -Wpedantic -Wextra -Ilibbase58 -I/opt/homebrew/opt/openssl@3/include -L/opt/homebrew/opt/openssl@3/lib src/main.c src/pda.c thirdparty/base58.c -o main -lcrypto
+SRC       = src/pda.c
+MAIN_SRC  = src/main.c thirdparty/base58.c
+TEST_SRC  = tests/test.c
+TEST_BIN  = tests/test
 
-run:
+.PHONY: build run test format all clean
+
+build: main
+
+main: $(MAIN_SRC) $(SRC)
+	$(CC) $(CFLAGS) $(CPPFLAGS) $(LDFLAGS) $^ -o $@ $(LDLIBS)
+
+run: build
 	./main
 
-format:
-	clang-format -i src/*.c src/*.h
+test: $(TEST_SRC) $(SRC)
+	$(CC) $(CFLAGS) $(CPPFLAGS) $(LDFLAGS) $^ -o $(TEST_BIN) $(LDLIBS)
+	./$(TEST_BIN)
 
-all:
-	clang -Wall -Wpedantic -Wextra -Ilibbase58 -I/opt/homebrew/opt/openssl@3/include -L/opt/homebrew/opt/openssl@3/lib src/main.c src/pda.c thirdparty/base58.c -o main -lcrypto && ./main
+format:
+	clang-format -i src/*.c src/*.h tests/*.c thirdparty/*.c thirdparty/*.h
+
+all: run
 
 clean:
-	rm main
+	rm -f main $(TEST_BIN)
