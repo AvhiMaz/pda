@@ -20,16 +20,6 @@ typedef struct {
     uint64_t          len;
 } SignerSeeds;
 
-int pda_is_on_curve(const uint8_t point[PDA_PUBKEY_LEN]);
-int sha256_seeds(const SignerSeeds *seeds,
-                 const uint8_t      program_id[PDA_PUBKEY_LEN],
-                 uint8_t            out[PDA_PUBKEY_LEN]);
-int create_program_address(const SignerSeeds *seeds,
-                           const uint8_t      program_id[PDA_PUBKEY_LEN],
-                           uint8_t            out[PDA_PUBKEY_LEN]);
-int find_program_address(const SignerSeeds *seeds,
-                         const uint8_t      program_id[PDA_PUBKEY_LEN],
-                         uint8_t out[PDA_PUBKEY_LEN], uint8_t *out_bump);
 typedef enum {
     PDA_OK = 0,
     PDA_ON_CURVE = 1,
@@ -40,5 +30,16 @@ typedef enum {
     PDA_ERR_CRYPTO = -5,
     PDA_ERR_NO_BUMP = -6,
 } pda_status;
+
+pda_status pda_is_on_curve(const uint8_t point[PDA_PUBKEY_LEN]);
+pda_status sha256_seeds(const SignerSeeds *seeds,
+                        const uint8_t      program_id[PDA_PUBKEY_LEN],
+                        uint8_t            out[PDA_PUBKEY_LEN]);
+pda_status create_program_address(const SignerSeeds *seeds,
+                                  const uint8_t      program_id[PDA_PUBKEY_LEN],
+                                  uint8_t            out[PDA_PUBKEY_LEN]);
+pda_status find_program_address(const SignerSeeds *seeds,
+                                const uint8_t      program_id[PDA_PUBKEY_LEN],
+                                uint8_t out[PDA_PUBKEY_LEN], uint8_t *out_bump);
 
 #endif
