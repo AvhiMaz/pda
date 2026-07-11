@@ -104,7 +104,7 @@ int sha256_seeds(const SignerSeeds *seeds, const uint8_t program_id[32],
 
     EVP_DigestInit_ex(ctx, EVP_sha256(), NULL);
 
-    for (int i = 0; i < seeds->len; i++) {
+    for (uint64_t i = 0; i < seeds->len; i++) {
         EVP_DigestUpdate(ctx, seeds->seeds[i].addr, seeds->seeds[i].len);
     }
     EVP_DigestUpdate(ctx, program_id, 32);
@@ -118,7 +118,7 @@ int sha256_seeds(const SignerSeeds *seeds, const uint8_t program_id[32],
 int create_program_address(const SignerSeeds *seeds,
                            const uint8_t program_id[32], uint8_t out[32]) {
 
-    for (int i = 0; i < seeds->len; i++) {
+    for (uint64_t i = 0; i < seeds->len; i++) {
         if (seeds->seeds[i].len > PDA_MAX_SEED_LEN) {
             return -1;
         }
@@ -142,7 +142,7 @@ int find_program_address(const SignerSeeds *seeds, const uint8_t program_id[32],
 
     SignerSeed extended[seeds->len + 1];
 
-    for (int i = 0; i < seeds->len; i++) {
+    for (uint64_t i = 0; i < seeds->len; i++) {
         extended[i] = seeds->seeds[i];
     }
 
