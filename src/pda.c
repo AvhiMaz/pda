@@ -122,7 +122,9 @@ int create_program_address(const SignerSeeds *seeds,
         return -1;
     }
 
-    sha256_seeds(seeds, program_id, out);
+    if (sha256_seeds(seeds, program_id, out) != 0) {
+        return -1;
+    };
 
     int on_curve = pda_is_on_curve(out);
 
