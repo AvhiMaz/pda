@@ -11,9 +11,9 @@ int main(void) {
     SignerSeeds   seeds = {.seeds = seed, .len = 1};
 
     uint8_t       address[32], bump;
-    int r = find_program_address(&seeds, system_program, address, &bump);
+    pda_status r = find_program_address(&seeds, system_program, address, &bump);
 
-    if (r != 0) {
+    if (r != PDA_OK) {
         printf("find_program_address failed: %d\n", r);
         return 1;
     }

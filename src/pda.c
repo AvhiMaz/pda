@@ -21,10 +21,10 @@ static const char ED25519_P_HEX[] =
 static const char ED25519_D_HEX[] =
     "52036CEE2B6FFE738CC740797779E89800700A4D4141D8AB75EB4DCA135978A3";
 
-int pda_is_on_curve(const uint8_t point[PDA_PUBKEY_LEN]) {
+pda_status pda_is_on_curve(const uint8_t point[PDA_PUBKEY_LEN]) {
 
     if (!point) {
-        return -1;
+        return PDA_ERR_NULL;
     }
 
     uint8_t be[PDA_PUBKEY_LEN];
@@ -33,11 +33,11 @@ int pda_is_on_curve(const uint8_t point[PDA_PUBKEY_LEN]) {
     }
     be[0] &= PDA_SIGN_MASK;
 
-    int     res = -1;
+    pda_status res = PDA_ERR_CRYPTO;
 
-    BN_CTX *ctx = BN_CTX_new();
+    BN_CTX    *ctx = BN_CTX_new();
 
-    BIGNUM *p = NULL, *d = NULL, *y = NULL, *x2 = BN_new(), *y2 = BN_new(),
+    BIGNUM    *p = NULL, *d = NULL, *y = NULL, *x2 = BN_new(), *y2 = BN_new(),
            *num = BN_new(), *den = BN_new(), *den_inv = BN_new(),
            *exp = BN_new(), *leg = BN_new();
 
@@ -47,7 +47,7 @@ int pda_is_on_curve(const uint8_t point[PDA_PUBKEY_LEN]) {
 
     if (!ctx || !p || !d || !x2 || !y2 || !num || !den || !den_inv || !exp ||
         !leg || !y) {
-        res = -1;
+        res = PDA_ERR_CRYPTO;
         goto out;
     }
 
@@ -58,7 +58,7 @@ int pda_is_on_curve(const uint8_t point[PDA_PUBKEY_LEN]) {
     BN_mod_sub(num, y2, BN_value_one(), p, ctx);
 
     if (BN_is_zero(num)) {
-        res = 1;
+        res = PDA_ON_CURVE;
     } else {
         BN_mod_mul(den, d, y2, p, ctx);
         BN_mod_add(den, den, BN_value_one(), p, ctx);
@@ -72,7 +72,7 @@ int pda_is_on_curve(const uint8_t point[PDA_PUBKEY_LEN]) {
         BN_rshift1(exp, exp);
         BN_mod_exp(leg, x2, exp, p, ctx);
 
-        res = BN_is_one(leg) ? 1 : 0;
+        res = BN_is_one(leg) ? PDA_ON_CURVE : PDA_OK;
     }
 
 out:
@@ -91,14 +91,14 @@ out:
     return res;
 }
 
-int sha256_seeds(const SignerSeeds *seeds,
-                 const uint8_t      program_id[PDA_PUBKEY_LEN],
-                 uint8_t            out[PDA_PUBKEY_LEN]) {
+pda_status sha256_seeds(const SignerSeeds *seeds,
+                        const uint8_t      program_id[PDA_PUBKEY_LEN],
+                        uint8_t            out[PDA_PUBKEY_LEN]) {
 
     EVP_MD_CTX *ctx = EVP_MD_CTX_new();
 
     if (!ctx) {
-        return -1;
+        return PDA_ERR_HASH;
     }
 
     unsigned int out_len = PDA_PUBKEY_LEN;
@@ -113,35 +113,35 @@ int sha256_seeds(const SignerSeeds *seeds,
     EVP_DigestFinal_ex(ctx, out, &out_len);
     EVP_MD_CTX_free(ctx);
 
-    return 0;
+    return PDA_OK;
 }
 
-int create_program_address(const SignerSeeds *seeds,
-                           const uint8_t      program_id[PDA_PUBKEY_LEN],
-                           uint8_t            out[PDA_PUBKEY_LEN]) {
+pda_status create_program_address(const SignerSeeds *seeds,
+                                  const uint8_t      program_id[PDA_PUBKEY_LEN],
+                                  uint8_t            out[PDA_PUBKEY_LEN]) {
 
     for (uint64_t i = 0; i < seeds->len; i++) {
         if (seeds->seeds[i].len > PDA_MAX_SEED_LEN) {
-            return -1;
+            return PDA_ERR_SEED_TOO_LONG;
         }
     }
 
     if (seeds->len > PDA_MAX_SEEDS) {
-        return -1;
+        return PDA_ERR_MAX_SEEDS;
     }
 
-    if (sha256_seeds(seeds, program_id, out) != 0) {
-        return -1;
-    };
+    pda_status hash_status = sha256_seeds(seeds, program_id, out);
+    if (hash_status != PDA_OK) {
+        return hash_status;
+    }
 
-    int on_curve = pda_is_on_curve(out);
-
-    return on_curve;
+    return pda_is_on_curve(out);
 }
 
-int find_program_address(const SignerSeeds *seeds,
-                         const uint8_t      program_id[PDA_PUBKEY_LEN],
-                         uint8_t out[PDA_PUBKEY_LEN], uint8_t *out_bump) {
+pda_status find_program_address(const SignerSeeds *seeds,
+                                const uint8_t      program_id[PDA_PUBKEY_LEN],
+                                uint8_t            out[PDA_PUBKEY_LEN],
+                                uint8_t           *out_bump) {
 
     SignerSeed extended[seeds->len + 1];
 
@@ -158,15 +158,15 @@ int find_program_address(const SignerSeeds *seeds,
 
     for (int b = PDA_MAX_BUMP; b >= PDA_MIN_BUMP; b--) {
         bump = (uint8_t)b;
-        int r = create_program_address(&extended_seeds, program_id, out);
+        pda_status r = create_program_address(&extended_seeds, program_id, out);
 
-        if (r == 0) {
+        if (r == PDA_OK) {
             *out_bump = bump;
-            return 0;
-        } else if (r != 1) {
+            return PDA_OK;
+        } else if (r != PDA_ON_CURVE) {
             return r;
         }
     }
 
-    return -1;
+    return PDA_ERR_NO_BUMP;
 }
