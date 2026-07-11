@@ -112,6 +112,16 @@ int sha256_seeds(const SignerSeeds *seeds, const uint8_t program_id[32],
 int create_program_address(const SignerSeeds *seeds,
                            const uint8_t program_id[32], uint8_t out[32]) {
 
+    for (int i = 0; i < seeds->len; i++) {
+        if (seeds->seeds[i].len > PDA_MAX_SEED_LEN) {
+            return -1;
+        }
+    }
+
+    if (seeds->len > PDA_MAX_SEEDS) {
+        return -1;
+    }
+
     sha256_seeds(seeds, program_id, out);
 
     int on_curve = pda_is_on_curve(out);

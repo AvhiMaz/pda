@@ -3,6 +3,9 @@
 
 #include <stdint.h>
 
+#define PDA_MAX_SEED_LEN 32
+#define PDA_MAX_SEEDS    16
+
 typedef struct {
     const uint8_t *addr;
     uint64_t       len;
