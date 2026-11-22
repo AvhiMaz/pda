@@ -23,13 +23,22 @@ every function returns a `pda_status` (`PDA_OK`, `PDA_ON_CURVE`, `PDA_ERR_NULL`,
 
 ## build
 
+built with [nob.h](https://github.com/tsoding/nob.h), no make. bootstrap once, after that `nob` rebuilds itself whenever `nob.c` changes:
+
 ```
-make build   # build main
-make run     # build and run main
-make test    # build and run the test suite
+cc -o nob nob.c
+```
+
+```
+./nob          # build main
+./nob run      # build and run main
+./nob test     # build and run the test suite
+./nob format   # clang-format all sources
+./nob clean    # remove build outputs
 ```
 
 ## credits
 
 - [libbase58](https://github.com/luke-jr/libbase58) by Luke Dashjr, vendored in `thirdparty/`
+- [nob.h](https://github.com/tsoding/nob.h) by Alexey Kutepov, vendored in `thirdparty/`
 - [OpenSSL](https://openssl.org) for bignum modular arithmetic (`BN_*`), not vendored, expected on the system
